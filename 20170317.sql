@@ -39,11 +39,11 @@ SELECT SUM(salary) OVER() over1 FROM employees;
 
 SELECT SUM(salary) OVER(ORDER BY employee_id) over2 FROM employees;
 
-SELECT SUM(salary) OVER(PARTITION BY departments_id) over3 FROM employees;
+SELECT SUM(salary) OVER(PARTITION BY department_id) over3 FROM employees;
 
-SELECT SUM(salary) OVER(ORDER BY departments_id) over4 FROM employees;
+SELECT SUM(salary) OVER(ORDER BY department_id) over4 FROM employees;
 
-SELECT SUM(salary) OVER(PARTITION BY departments_id PARTITION BY employee_id) over5 FROM employees;
+SELECT SUM(salary) OVER(PARTITION BY department_id ORDER BY employee_id) over5 FROM employees;
 
 
 --RANK(), ROW_NUM函数
@@ -135,17 +135,97 @@ WHERE salary > (SELECT AVG(salary)
                   
 --1.查询员工表中第6到第12条数据  
 
-SELECT rownum FROM employees;
-/*SELECT ROW_NUMBER() OVER() as rownum1 FROM employees;*/
+SELECT *
+  FROM (SELECT rownum row_num, e.*
+          FROM employees e
+         WHERE rownum <= 12)
+ WHERE row_num >= 6;
 
 
-SELECT * FROM (SELECT ROWNUM AS "行号", *  FROM employees) WHERE "行号" between 6 and 12;
+
+2.查询工资最高的第6到第12条员工
+SELECT *
+  FROM (SELECT rownum row_num, e.*
+          FROM (SELECT * FROM employees ORDER BY salary DESC) e
+         WHERE rownum <= 12)
+ WHERE row_num >= 6;
+
+   
+3.查询和149号员工同一个部门的其他员工 
 
 
 
-SELECT * FROM employees, (SELECT ROWNUM AS "行号" FROM employees)  WHERE "行号" between 6 and 12;
+SELECT * FROM employees WHERE department_id=
+(SELECT department_id FROM employees WHERE employee_id=149);
 
-
-2.查询工资最高的第6到第12条员工   
-3.查询和149号员工同一个部门的其他员工    
+   
 4.查询员工编号，姓名，部门编号，工资，本部门的工资总和                                                                                     
+SELECT e.employee_id,
+       e.last_name,
+       e.department_id,
+       e.salary,
+       SUM(e.salary) OVER(ORDER BY department_id)
+  FROM employees e;
+
+SELECT * FROM student;
+
+CREATE TABLE new_stu as SELECT * FROM student;
+
+SELECT * FROM new_stu;
+
+UPDATE student SET name='更改' WHERE id=1;
+
+UPDATE new_stu SET name='更改COPY' WHERE id=1;
+
+UPDATE new_stu SET name='ALLCHANGE';
+
+CREATE TABLE new_stu1 AS SELECT * FROM student;
+
+SELECT * FROM new_stu1;
+
+UPDATE new_stu1 SET name='小宝宝';
+
+SELECT employee_id, last_name, manager_id FROM employees 
+START WITH employee_id=206
+connect by prior manager_id=employee_id;
+
+SELECT * FROM employees 
+START WITH employee_id=206
+connect by prior manager_id=employee_id;
+
+
+
+SELECT LEVEL, e.* FROM employees e
+START WITH employee_id=206
+connect by prior manager_id=employee_id;
+
+--三个常用伪列
+SELECT LEVEL, ROWNUM, ROWID, e.* FROM employees e
+START WITH employee_id=206
+connect by prior manager_id=employee_id;
+
+SELECT LEVEL, ROWNUM, ROWID FROM employees
+START WITH employee_id=206
+connect by prior manager_id=employee_id;
+
+SELECT LEVEL, employee_id, last_name, manager_id  
+FROM employees
+connect by prior manager_id=employee_id;
+
+SELECT LEVEL, employee_id, last_name, manager_id  
+FROM employees
+connect by prior manager_id=employee_id ORDER BY LEVEL DESC;
+
+
+SELECT LEVEL, employee_id, last_name, manager_id  
+FROM employees
+START WITH  employee_id=101
+connect by prior manager_id=employee_id ORDER BY LEVEL DESC;
+
+
+CREATE TABLE test as SELECT * FROM employees;
+
+SELECT * FROM test;
+
+DELETE FROM test WHERE department_id = 
+(SELECT department_id FROM departments WHERE department_name = 'IT');
