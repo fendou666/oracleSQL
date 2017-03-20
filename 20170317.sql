@@ -35,15 +35,15 @@ SELECT id, name, sex  FROM student GROUP BY id, name, sex ORDER BY id;
 
 --分析函数
 --OVER
-SELECT SUM(salary) OVER() over1 FROM employees;
+SELECT SUM(salary) OVER() over1, e.* FROM employees e;
 
-SELECT SUM(salary) OVER(ORDER BY employee_id) over2 FROM employees;
+SELECT SUM(salary) OVER(ORDER BY employee_id) over2, e.* FROM employees e;
 
-SELECT SUM(salary) OVER(PARTITION BY departments_id) over3 FROM employees;
+SELECT SUM(salary) OVER(PARTITION BY departments_id) over3, e.* FROM employees e;
 
-SELECT SUM(salary) OVER(ORDER BY departments_id) over4 FROM employees;
+SELECT SUM(salary) OVER(ORDER BY departments_id) over4, e.* FROM employees e;
 
-SELECT SUM(salary) OVER(PARTITION BY departments_id PARTITION BY employee_id) over5 FROM employees;
+SELECT SUM(salary) OVER(PARTITION BY departments_id PARTITION BY employee_id) over5, e.* FROM employees e;
 
 
 --RANK(), ROW_NUM函数
@@ -66,6 +66,25 @@ SELECT * FROM employees WHERE salary> 11000 ORDER BY salary;
 SELECT * FROM employees 
 WHERE salary = (SELECT salary FROM employees WHERE employee_id = 101);
 
+--嵌套子查询
+--比员工101的经理的工资还高的所有员工
+
+SELECT *
+FROM employees n WHERE n.salary>
+
+(SELECT m.salary
+FROM employees m WHERE m.employee_id = 
+
+(SELECT  e.manager_id
+FROM employees e WHERE e.employee_id=202))
+
+ORDER BY n.employee_id;
+
+--查询工资最高的前5名员工
+
+
+--查询员工表中第6到12条
+SELECT * FROM employees WHERE ROWNUM <>12;
 
 SELECT department_id, MIN(salary)
 FROM employees
