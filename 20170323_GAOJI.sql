@@ -146,6 +146,7 @@ END;
 
 
 --用if else 语句判断是否在1-100之间，如果在输出这个数，不在输出FALSE
+SELECT
 --employees 10-50:营销部   60-90：市场部  大于90：研发部  其他：部门不存在
 --用loop，for，while循环递减50-1
 --把employees 员工信息遍历出来 取出emp表7369的工资，如果小于1200输出low,小于2000输出middle，其他输出high
