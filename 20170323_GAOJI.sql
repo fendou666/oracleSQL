@@ -146,13 +146,82 @@ END;
 
 
 --用if else 语句判断是否在1-100之间，如果在输出这个数，不在输出FALSE
-SELECT
+DECLARE
+      V_input number(10):=&input;
+BEGIN
+      IF V_input>=1 AND V_input<=100 THEN
+         dbms_output.put_line(V_input);
+      ELSE 
+         dbms_output.put_line('输入的数不在1到100之间');
+      END IF;
+END;
+
+
+
+
 --employees 10-50:营销部   60-90：市场部  大于90：研发部  其他：部门不存在
+DECLARE
+TYPE employees_table_type IS TABLE OF employees%ROWTYPE INDEX BY BINARY_INTEGER;
+Emptb employees_table_type;
+BEGIN
+      SELECT * BULK COLLECT INTO Emptb FROM  employees;
+      FOR i IN 1..Emptb.count LOOP
+          IF Emptb(i).department_id >=10 AND Emptb(i).department_id <=50 THEN
+             dbms_output.put_line('员工ID：' || Emptb(i).employee_id || '  部门ID：' ||Emptb(i).department_id || '是营销部');
+          ELSIF  Emptb(i).department_id >=60 AND Emptb(i).department_id <=90  THEN
+                 dbms_output.put_line('员工ID：' || Emptb(i).employee_id || '  部门ID：' ||Emptb(i).department_id || '是市场部');
+          ELSIF  Emptb(i).department_id >=90 AND Emptb(i).department_id <=110  THEN
+                 dbms_output.put_line('员工ID：' || Emptb(i).employee_id || '  部门ID：' ||Emptb(i).department_id || '是研发部');
+          ELSE 
+            dbms_output.put_line('员工ID：' || Emptb(i).employee_id || '  部门ID：' ||Emptb(i).department_id || '是部门不存在');
+          END IF; 
+      
+      END LOOP;
+END;
+
+
 --用loop，for，while循环递减50-1
+DECLARE
+      V_num number(3):=50;
+BEGIN
+      LOOP  
+            dbms_output.put_line(V_num);
+            V_num:=V_num-1;
+            IF V_num<1 THEN
+              EXIT;
+            END IF;
+      END LOOP;
+END;
+
+
+DECLARE
+      
+BEGIN
+      FOR i  IN REVERSE 1..50 LOOP
+          dbms_output.put_line(i);
+      END LOOP;
+END;
+
+DECLARE
+      V_num number(2):=50;
+BEGIN
+      WHILE V_num>=1 LOOP
+            dbms_output.put_line(V_num);
+            V_num:=V_num-1;
+      END LOOP;
+END;
+
+
+
 --把employees 员工信息遍历出来 取出emp表7369的工资，如果小于1200输出low,小于2000输出middle，其他输出high
 
+DECLARE 
 
+TYPE employees_table_type IS TABLE OF employees%ROWTYPE 
 
+BEGIN
+  
+END;
 
 
 
