@@ -215,12 +215,93 @@ END;
 
 --把employees 员工信息遍历出来 取出emp表7369的工资，如果小于1200输出low,小于2000输出middle，其他输出high
 
+SELECT * FROM employees;
+
 DECLARE 
 
-TYPE employees_table_type IS TABLE OF employees%ROWTYPE 
+TYPE employees_table_type IS TABLE OF employees%ROWTYPE INDEX BY BINARY_INTEGER;
+
+Empe employees_table_type;
+
+TYPE employees_record_type IS RECORD(
+     V_id employees.employee_id%TYPE:=7369,
+     V_name employees.last_name%TYPE:='添加',
+     V_sal employees.salary%TYPE:=11211.11
+);
+
+EmpeR employees_record_type;
+
+V_sal emp.sal%TYPE;
 
 BEGIN
-  
+     SELECT * BULK COLLECT INTO Empe FROM employees;  
+     FOR i IN 1..Empe.count LOOP
+         dbms_output.put_line('员工ID：'|| Empe(i).employee_id ||
+                              '  员工名字：' || Empe(i).last_name||
+                              '  email：' || Empe(i).email ||
+                              '  管理者ID；' || Empe(i).manager_id ||
+                              '  部门ID：' || Empe(i).department_id
+                              );
+                              
+         dbms_output.put_line('*****************************');
+     END LOOP;
+     
+     SELECT sal INTO V_sal FROM emp WHERE empno=7369;
+     IF  V_sal<1200 THEN
+       dbms_output.put_line('low');
+     ELSIF V_sal<2000 THEN
+       dbms_output.put_line('middle');
+     ELSE
+       dbms_output.put_line('high');
+     END IF;
+     /*INSERT INTO employees(employee_id, last_name, salary) 
+     VALUES(EmpeR.V_id, EmpeR.V_name, EmpeR.V_sal) 
+     RETURNING employee_id, last_name, salary INTO EmpeR;
+     dbms_output.put_line('员工ID：'|| EmpeR.V_id ||
+                              '  员工名字：' || EmpeR.V_name||
+                              '  工资：' || EmpeR.V_sal
+                              );*/
+                              
+     
+END;
+
+
+
+-------------
+SELECT * FROM emp;
+DECLARE
+     V_sal emp.sal%TYPE;
+BEGIN
+     SELECT sal INTO V_sal FROM emp WHERE empno=7369;
+     IF  V_sal<1200 THEN
+       dbms_output.put_line('low');
+     ELSIF V_sal<2000 THEN
+       dbms_output.put_line('middle');
+     ELSE
+       dbms_output.put_line('high');
+     END IF;
+END;
+
+
+---
+DECLARE 
+TYPE employees_record_type IS RECORD(
+     V_id employees.employee_id%TYPE:=7369,
+     V_name employees.last_name%TYPE:='添加',
+     V_sal employees.salary%TYPE:=11211.11
+);
+EmpeR employees_record_type;
+BEGIN
+/*     INSERT INTO employees(employee_id, last_name, salary) 
+     VALUES(EmpeR.V_id, EmpeR.V_name, EmpeR.V_sal) 
+     RETURNING employee_id, last_name, salary INTO EmpeR;*/
+     
+     SELECT employee_id, last_name, salary INTO EmpeR FROM employees WHERE employee_id=201;
+     dbms_output.put_line('员工ID：'|| EmpeR.V_id ||
+                              '  员工名字：' || EmpeR.V_name||
+                              '  工资：' || EmpeR.V_sal
+                              );
+     
 END;
 
 
