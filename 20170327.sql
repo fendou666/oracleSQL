@@ -214,6 +214,7 @@ BEGIN
        SELECT salary INTO V_sal FROM employees WHERE employee_id=100;
        IF V_sal>10000 THEN
           RAISE myexp;
+          RAISE_APPLICATION_ERROR(-20001, '自定义异常信息包含错误号的异常');
        END IF;
 
 EXCEPTION
@@ -226,12 +227,133 @@ EXCEPTION
        WHEN myexp THEN
             /*dbms_output.put_line(sqlcode || sqlerrm);
             dbms_output.put_line('触发自定义异常，工资超过10000触发异常');*/
-            RAISE_APPLICATION_ERROR(-20001, '自定义异常信息包含错误号的异常');
        WHEN OTHERS THEN
             dbms_output.put_line(sqlcode || sqlerrm);
-            dbms_output.put_line('others 异常，如果需要处理，看以上3种进行选择');
+            dbms_output.put_line('others 异常(一般自定义带错误号的在这里处理，只需要打出错误号和错误信息)，如果需要处理，看以上3种进行选择');
 
 END;
+
+--异常块覆盖
+DECLARE
+  
+BEGIN
+       RAISE_APPLICATION_ERROR(-20001, '外部异常');
+EXCEPTION
+       WHEN OTHERS THEN
+            BEGIN
+                   RAISE_APPLICATION_ERROR(-20002, '中部异常');
+            EXCEPTION
+                   WHEN OTHERS THEN
+                       BEGIN
+                               RAISE_APPLICATION_ERROR(-20003, '内部异常');
+                       EXCEPTION
+                               WHEN OTHERS THEN
+                                    dbms_output.put_line(sqlerrm);  
+                       END;
+            
+            END;
+
+END;
+
+DECLARE
+  
+BEGIN
+       RAISE_APPLICATION_ERROR(-20001, '外部异常');
+EXCEPTION
+       WHEN OTHERS THEN
+            BEGIN
+                   RAISE_APPLICATION_ERROR(-20002, '中部异常');
+            EXCEPTION
+                   WHEN OTHERS THEN
+                       BEGIN
+                               RAISE_APPLICATION_ERROR(-20003, '内部异常', true);
+                       EXCEPTION
+                               WHEN OTHERS THEN
+                                    dbms_output.put_line(sqlerrm);  
+                       END;
+            
+            END;
+
+END;
+
+DECLARE
+  
+BEGIN
+       RAISE_APPLICATION_ERROR(-20001, '外部异常');
+EXCEPTION
+       WHEN OTHERS THEN
+            BEGIN
+                   RAISE_APPLICATION_ERROR(-20002, '中部异常', TRUE);
+            EXCEPTION
+                   WHEN OTHERS THEN
+                       BEGIN
+                               RAISE_APPLICATION_ERROR(-20003, '内部异常', true);
+                       EXCEPTION
+                               WHEN OTHERS THEN
+                                    dbms_output.put_line(sqlerrm);  
+                       END;
+            
+            END;
+
+END;
+
+
+--异常传播
+
+--1.获取某部门的工资总和（函数），若员工不存在显示‘你要找的数据不存在’；
+
+
+CREATE OR REPLACE FUNCTION get_sal(p_dpid  number， p_sal out number)
+RETURN varchar2
+AS
+       V_sum_sal employees.salary%TYPE;
+BEGIN
+       SELECT sum(salary) INTO V_sum_sal FROM employees WHERE department_id = p_dpid;
+       IF V_sum_sal==null THEN
+          RAISE_APPLICATION_ERROR(-20001, '你要找的数据不存在');
+       END IF;
+       RETURN V_sum_sal;
+EXCEPTION
+       WHEN OTHERS THEN
+            RETURN sqlerrm;  
+END;
+
+
+
+--2.把第一个题用三种参数传递格式分别进行实现；
+DECLARE
+       V_sum_sal employees.salary%TYPE;
+       p_dpid employees.department_id%TYPE;
+BEGIN 
+       dbms_output.put_line(get_sal(p_dpid));
+END;
+50,V_sal
+p_dpid=>50, p_sal=>V_sal
+50, p_sal=>V_sal
+p_dpid=>50, V_sal
+
+--3.使用存储过程向departments表中插入数据；
+select * from departments;
+CREATE OR REPLACE PROCEDURE de_insert(p_did departments.department_id%TYPE,
+                                      p_name departments.department_name%TYPE,
+                                      p_mngid departments.manager_id%TYPE,
+                                      p_lctid departments.location_id%TYPE,
+                                      )
+AS
+
+BEGIN
+      INSERT INTO departments VALUES(p_did, p_name, p_mngid, p_lctid);
+      commit;  
+END;
+
+BEGIN
+      de_insert(111,'测试部门',222,333);
+
+END;
+
+
+--4.计算制定部门的工资总和，并统计其中的职工数量
+
 
 
 
