@@ -300,60 +300,137 @@ END;
 
 --异常传播
 
+--学生信息为10
+CREATE OR REPLACE FUNCTION get_stu_info1(p_stuid number, info out sys_refcursor)
+RETURN number
+AS
+       
+BEGIN
+       open info for SELECT * FROM student WHERE id=p_stuid; 
+       return -1;
+END;
+
+DECLARE
+       v_num number(10);
+       info sys_refcursor;
+BEGIN
+       dbms_output.put_line(get_stu_info1(10,info));
+       dbms_output.put_line();
+       CLOSE info;
+END;
+
+
+
+
+
 --1.获取某部门的工资总和（函数），若员工不存在显示‘你要找的数据不存在’；
 
 
-CREATE OR REPLACE FUNCTION get_sal(p_dpid  number， p_sal out number)
+CREATE OR REPLACE FUNCTION get_sal(p_dpid  number)
 RETURN varchar2
 AS
        V_sum_sal employees.salary%TYPE;
 BEGIN
        SELECT sum(salary) INTO V_sum_sal FROM employees WHERE department_id = p_dpid;
-       IF V_sum_sal==null THEN
+       /*IF V_sum_sal==null THEN
+          RAISE_APPLICATION_ERROR(-20001, '你要找的数据不存在');
+       END IF;*/
+       IF V_sum_sal>0 THEN
+          RETURN V_sum_sal;
+       ELSE
           RAISE_APPLICATION_ERROR(-20001, '你要找的数据不存在');
        END IF;
-       RETURN V_sum_sal;
+       
+       
 EXCEPTION
        WHEN OTHERS THEN
             RETURN sqlerrm;  
 END;
 
+BEGIN
+  
+      dbms_output.put_line(get_sal(50));  
+      dbms_output.put_line(get_sal(1000));          
+END;
+
 
 
 --2.把第一个题用三种参数传递格式分别进行实现；
-DECLARE
+
+CREATE OR REPLACE PROCEDURE get_sal2(p_dpid  number, p_sal out varchar2)
+AS
        V_sum_sal employees.salary%TYPE;
+BEGIN
+       SELECT sum(salary) INTO V_sum_sal FROM employees WHERE department_id = p_dpid;
+       IF V_sum_sal>0 THEN
+          p_sal:= V_sum_sal;
+       ELSE
+          RAISE_APPLICATION_ERROR(-20001, '你要找的数据不存在');
+       END IF;
+EXCEPTION
+       WHEN OTHERS THEN
+            p_sal:= sqlerrm;
+END;
+
+
+DECLARE
+       V_sal varchar2(200);
        p_dpid employees.department_id%TYPE;
 BEGIN 
-       dbms_output.put_line(get_sal(p_dpid));
+       get_sal2(50,V_sal);
+       dbms_output.put_line(V_sal);
+       get_sal2(p_dpid=>1000, p_sal=>V_sal);
+       dbms_output.put_line(V_sal);
+       get_sal2(50, p_sal=>V_sal);
+       dbms_output.put_line(V_sal);
 END;
-50,V_sal
+/*50,V_sal
 p_dpid=>50, p_sal=>V_sal
 50, p_sal=>V_sal
-p_dpid=>50, V_sal
+p_dpid=>50, V_sal*/
 
 --3.使用存储过程向departments表中插入数据；
 select * from departments;
 CREATE OR REPLACE PROCEDURE de_insert(p_did departments.department_id%TYPE,
                                       p_name departments.department_name%TYPE,
                                       p_mngid departments.manager_id%TYPE,
-                                      p_lctid departments.location_id%TYPE,
+                                      p_lctid departments.location_id%TYPE
                                       )
 AS
 
 BEGIN
-      INSERT INTO departments VALUES(p_did, p_name, p_mngid, p_lctid);
+      INSERT INTO departments(department_id, department_name, manager_id, location_id) 
+      VALUES(p_did, p_name, p_mngid, p_lctid);
       commit;  
 END;
 
 BEGIN
-      de_insert(111,'测试部门',222,333);
-
+  ---关于location不对的话如何做
+      de_insert(111,'测试部门',222,1400);
 END;
-
+INSERT INTO departments VALUES(111,'测试部门',222,333);
 
 --4.计算制定部门的工资总和，并统计其中的职工数量
 
+CREATE OR REPLACE FUNCTION get_emp_count_sal(p_did number, p_count out number)
+RETURN number
+AS
+
+       V_sumsal employees.salary%TYPE;
+BEGIN
+       SELECT SUM(salary), count(*) INTO V_sumsal, p_count FROM employees 
+       WHERE department_id=p_did;
+       RETURN V_sumsal;
+END;
+
+DECLARE
+       V_sumsal employees.salary%TYPE;
+       V_count number(10);
+
+BEGIN
+       dbms_output.put_line('总工资为' || get_emp_count_sal(50,V_count));
+       dbms_output.put_line('员工总数为'||V_count);
+END;
 
 
 
