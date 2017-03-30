@@ -62,9 +62,23 @@ BEGIN
     DELETE FROM employees WHERE department_id =:new.department_id;
 END;
 
+CREATE OR REPLACE VIEW VW_emply
+AS
+       SELECT * FROM employees;
+
+CREATE OR REPLACE TRIGGER TRG_del_dpmt_v
+INSTEAD OF DELETE ON VW_emply
+FOR EACH ROW
+DECLARE
+
+BEGIN
+    DELETE FROM employees WHERE department_id =:old.department_id;
+END TRG_del_dpmt_v;
+
+
 DELETE  FROM VW_dpmt where department_id=90;
 
-
+SELECT * FROM VW_dpmt;
 
 
 
