@@ -124,10 +124,32 @@ BEGIN
        DBMS_OUTPUT.put_line(V_name);
 END;
 
+--按照薪水分级：D 3000以下 C 5000以下 B 8000以下  A 10000以下 O：10000以上
+
+SELECT e.*, 
+       CASE  
+       WHEN e.sal<3000  then 'D'
+       WHEN e.sal<5000  THEN 'C'
+       WHEN e.sal<8000  THEN 'B'
+       WHEN e.sal<10000  THEN 'A'
+       ELSE '0'
+       END AS grade
+       
+FROM emp e;
 
 
+--我想知道2000以下有多少个员工 2000-5000有多少个员工 5000-10000有多少个员工 10000以上有多少
 
-
+SELECT count(grade), grade FROM(
+SELECT e.salary,
+       CASE  
+       WHEN e.salary<2000  then 'D'
+       WHEN e.salary<5000  THEN 'C'
+       WHEN e.salary<10000  THEN 'A'
+       ELSE '0'
+       END AS grade
+FROM employees e)
+GROUP BY grade;
 
 
 
