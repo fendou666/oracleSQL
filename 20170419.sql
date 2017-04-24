@@ -99,19 +99,30 @@ BEGIN
        DBMS_OUTPUT.put_line(V_count);
 END;
 
-
-
---增加
 DECLARE
-       V_sql varchar(200):='INSERT INTO aa  VALUES(1, ''aa'', ''vv'') RETURNING id, name INTO :1, :2';
-       V_id number(10);
+       V_sql varchar(200):='DELETE  FROM aa RETUTNING count(aa.id) INTO :1';
+       V_count number(10);
+BEGIN
+       EXECUTE IMMEDIATE V_sql RETURNING INTO V_count;
+       DBMS_OUTPUT.put_line(V_count);
+END;
+SELECT name FROM aa WHERE id = 2
+--查询
+DECLARE
+       V_sql varchar(200):='SELECT name FROM aa WHERE id = :1';
+       V_id number(10):=2;
        V_name varchar(20);
 BEGIN
-       EXECUTE IMMEDIATE V_sql RETURNING INTO V_id, V_name;
-      -- INSERT INTO aa  VALUES(1, 'aa', 'vv') RETURNING id, name INTO V_id, V_name;
-       DBMS_OUTPUT.put_line(V_id);
+       EXECUTE IMMEDIATE V_sql  INTO V_name USING V_id;
+       --SELECT name into V_name FROM aa WHERE id = 2;
+    
+       --DBMS_OUTPUT.put_line(V_id);
        DBMS_OUTPUT.put_line(V_name);
 END;
+create or replace s_i(V_id in out number,v_name out varchar)
+as 
+begin
+  select 
 
 --更新
 DECLARE
@@ -150,6 +161,9 @@ SELECT e.salary,
        END AS grade
 FROM employees e)
 GROUP BY grade;
+
+
+
 
 
 
