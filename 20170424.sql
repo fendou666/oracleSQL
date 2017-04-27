@@ -101,17 +101,166 @@ BEGIN
     end loop;
 END;
 
-SELECT  MAX(emp.sal) FROM emp GROUP BY emp.deptno; 
+--over
+order by 计算基础
+order by 内部为一组的全部计算为一个值
+partition by 分区基础(即只计算分区部分，互不干涉) , 跟group by 一样，不过group by 只能选择可以分组的一个值
+ 
+SELECT e.employee_id, e.salary, e.department_id, 
+       SUM(salary) OVER(ORDER BY employee_id) ore
+FROM employees e;
 
-SELECT * FROM emp;
+SELECT e.employee_id, e.salary, e.department_id, 
+       SUM(salary) OVER(ORDER BY department_id) ord
+FROM employees e;
 
-CREATE OR REPLACE FUNCTION (
-    
-)
+SELECT e.employee_id, e.salary, e.department_id, 
+       SUM(salary) OVER(PARTITION BY department_id) pad
+FROM employees e;
+
+SELECT e.employee_id, e.salary, e.department_id, 
+       SUM(salary) OVER(PARTITION BY department_id ORDER BY employee_id) padore
+FROM employees e;
+
+
+SELECT 
+       e.employee_id, 
+       e.salary, 
+       e.department_id,
+       SUM(salary) OVER(ORDER BY employee_id) ore, 
+       SUM(salary) OVER(ORDER BY department_id) ord,
+       SUM(salary) OVER(PARTITION BY department_id) pad,
+       SUM(salary) OVER(PARTITION BY department_id ORDER BY employee_id) padore
+
+FROM employees e;
+
+SELECT ROW_NUMBER() OVER(ORDER BY department_id) row_number,
+       dense_rank() OVER(ORDER BY department_id) dense_rank,
+       RANK() OVER(ORDER BY department_id) rank,
+       department_id,
+       employee_id
+FROM employees;
+
+
+SELECT * FROM emp,（SELECT DISTINCT emp.deptno, 
+       MAX(emp.sal) OVER(PARTITION BY emp.deptno) depMaxSal, 
+       MIN(emp.sal) OVER(PARTITION BY emp.deptno) depMinSal
+FROM emp）maxmin
+WHERE emp.deptno = maxmin.deptno AND (emp.sal = maxmin.depMaxSal OR emp.sal = maxmin.depMinSal);
+
+
+
+SELECT * FROM emp,（SELECT emp.deptno, 
+       MAX(emp.sal) depMaxSal, 
+       MIN(emp.sal) depMinSal
+FROM emp group by emp.deptno）maxmin
+WHERE emp.deptno = maxmin.deptno AND (emp.sal = maxmin.depMaxSal OR emp.sal = maxmin.depMinSal);
+
+
+--open 游标 for, 注意：open 游标 for后面不可以带括号
+CREATE OR REPLACE FUNCTION getMaxMinEmp
 RETURN SYS_REFCURSOR
-IS 
+AS 
+       RS SYS_REFCURSOR;
+BEGIN
+       OPEN RS FOR SELECT * FROM emp,（SELECT emp.deptno, 
+                                              MAX(emp.sal) depMaxSal, 
+                                              MIN(emp.sal) depMinSal
+                                     FROM emp group by emp.deptno）maxmin
+                 WHERE emp.deptno = maxmin.deptno 
+                 AND (emp.sal = maxmin.depMaxSal 
+                 OR emp.sal = maxmin.depMinSal);
+       RETURN RS;
+       
+END;
+--传递参数全是父引用, AS下不可以分开赋值
+CREATE OR REPLACE FUNCTION getMaxMinEmp1(errorInfo OUT varchar)
+RETURN SYS_REFCURSOR
+AS 
+       RS SYS_REFCURSOR;
+	   /*aa number(10) --这样是错误的
+	   aa:=22;*/
+       aa number(10);
+BEGIN
+       errorInfo:=' ';
+       aa:=20/0;
+       OPEN RS FOR SELECT * FROM emp,（SELECT emp.deptno, 
+                                              MAX(emp.sal) depMaxSal, 
+                                              MIN(emp.sal) depMinSal
+                                     FROM emp group by emp.deptno）maxmin
+                 WHERE emp.deptno = maxmin.deptno 
+                 AND (emp.sal = maxmin.depMaxSal 
+                 OR emp.sal = maxmin.depMinSal);
+       RETURN RS;
+EXCEPTION
+       WHEN others THEN
+            errorInfo:=sqlerrm;
+            return null;
+END;
 
+
+
+--注意：如果无参数传递，函数名后不需要小括号
+CREATE OR REPLACE FUNCTION test111(V_err out varchar)
+RETURN NUMBER
+AS
+       
+BEGIN
+       V_err:='aaaa';
+       return 110;
+EXCEPTION
+       WHEN others then
+            V_err:=sqlerrm;
+            --dbms_output.put_line(V_err);
+            --dbms_output.put_line(sqlerrm);
+END;
+
+DECLARE
+            aa varchar(100);
+BEGIN
+     aa := 'asdadsas'||''''||'x'||'''';
+     dbms_output.put_line(aa);
+End;
+
+SELECT user, 
+       systimestamp, 
+       system_privilege_map, 
+       system, 
+       sysoper, 
+       sysdba, 
+       sysdate, 
+       sysaux, FROM dual;
+
+CREATE TABLE emp_his(userName varchar(20), 
+             systime varchar(50),
+             operation varchar(10), 
+             empno number(10), 
+             empsal number(10,2), 
+             empdepno number(2));
+DROP TABLE emp_his;
+
+INSERT INTO  emp_his VALUES(User, systimestamp, 'INSERT', 222, 33.22,20);
+SELECT * from emp;
+--after后面每个操作必须要加OR
+CREATE OR REPLACE TRIGGER userDML
+AFTER INSERT OR UPDATE OR DELETE
+ON emp
+--FOR EACH ROW  不需要，因为用户只可能创建一次
+DECLARE
+--      V_operation varchar(10);      
 
 BEGIN
+    IF INSERTING THEN
+       INSERT INTO  emp_his VALUES(User, systimestamp, 'INSERT', new.empno, new.sal, new.deptno);
+    ELSIF UPDATING THEN 
+       INSERT INTO emp_his VALUES(User, systimestamp, 'UPDATE', new.empno, new.sal,new.deptno);
+    ELSIF DELETING THEN    
+       INSERT INTO emp_his  VALUES(User, systimestamp, 'DELETE', old.empno, old.sal, old.deptno);
+    END IF;
 
 END;
+
+
+ALTER TABLE student RENAME COLUMN name to xingming;
+ALTER TABLE student RENAME COLUMN xingming to name;
+
