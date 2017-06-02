@@ -182,7 +182,7 @@ AS
 	   aa:=22;*/
        aa number(10);
 BEGIN
-       errorInfo:=' ';
+       errorInfo:='';
        aa:=20/0;
        OPEN RS FOR SELECT * FROM emp,（SELECT emp.deptno, 
                                               MAX(emp.sal) depMaxSal, 
@@ -241,21 +241,23 @@ DROP TABLE emp_his;
 
 INSERT INTO  emp_his VALUES(User, systimestamp, 'INSERT', 222, 33.22,20);
 SELECT * from emp;
---after后面每个操作必须要加OR
+--after后面每个操作必须要加OR, 调用new和old必须写for each row, 调用new, old对象的值必须在前面加：号
 CREATE OR REPLACE TRIGGER userDML
 AFTER INSERT OR UPDATE OR DELETE
 ON emp
---FOR EACH ROW  不需要，因为用户只可能创建一次
+FOR EACH ROW  
 DECLARE
 --      V_operation varchar(10);      
-
 BEGIN
     IF INSERTING THEN
-       INSERT INTO  emp_his VALUES(User, systimestamp, 'INSERT', new.empno, new.sal, new.deptno);
+       INSERT INTO  emp_his VALUES(User, systimestamp, 'INSERT', 
+                                         :new.empno, :new.sal, :new.deptno);
     ELSIF UPDATING THEN 
-       INSERT INTO emp_his VALUES(User, systimestamp, 'UPDATE', new.empno, new.sal,new.deptno);
+       INSERT INTO emp_his VALUES(User, systimestamp, 'UPDATE', 
+                                        :new.empno, :new.sal, :new.deptno);
     ELSIF DELETING THEN    
-       INSERT INTO emp_his  VALUES(User, systimestamp, 'DELETE', old.empno, old.sal, old.deptno);
+       INSERT INTO emp_his  VALUES(User, systimestamp, 'DELETE', 
+                                         :old.empno, :old.sal, :old.deptno);
     END IF;
 
 END;

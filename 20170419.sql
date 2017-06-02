@@ -82,12 +82,21 @@ drop table aa;
 delete from aa;
 select * from aa;
 
+
+
+
 --删除测试
 DECLARE
        V_count number(10);
 BEGIN
        DELETE  FROM aa RETURNING count(aa.id) INTO V_count;
        dbms_output.put_line(V_count);
+END;
+---添加测试
+DECLARE
+       V_sql varchar(200) := 'INSERT INTO aa VALUES(17,''小李'', ''男'')';
+BEGIN
+       EXECUTE IMMEDIATE V_sql;
 END;
 
 --删除
@@ -135,6 +144,30 @@ BEGIN
        DBMS_OUTPUT.put_line(V_name);
 END;
 
+---合并
+INSERT INTO AA VALUES(17,'小李', '男');
+UPDATE aa SET name='del' WHERE id=17;
+DELETE FROM AA WHERE id=17;
+SELECT * FROM aa WHERE id=17;
+
+CREATE OR REPLACE PROCEDURE QDMLAA(V_sql varchar2, errStr out varchar2) 
+       
+AS
+       
+BEGIN
+       errStr:='';
+       EXECUTE IMMEDIATE V_sql;
+EXCEPTION
+       WHEN OTHERS THEN
+            errStr:=SQLCODE||SQLERRM;
+END;
+
+
+
+
+
+
+
 --按照薪水分级：D 3000以下 C 5000以下 B 8000以下  A 10000以下 O：10000以上
 
 SELECT e.*, 
@@ -151,6 +184,9 @@ FROM emp e;
 
 --我想知道2000以下有多少个员工 2000-5000有多少个员工 5000-10000有多少个员工 10000以上有多少
 
+
+
+
 SELECT count(grade), grade FROM(
 SELECT e.salary,
        CASE  
@@ -161,9 +197,6 @@ SELECT e.salary,
        END AS grade
 FROM employees e)
 GROUP BY grade;
-
-
-
 
 
 
