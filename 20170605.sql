@@ -36,3 +36,5 @@ END;
 SELECT id, stuNum, name, sex, age, gradeFrom FROM studentInfoA WHERE id = 1;
 
 UPDATE studentInfoA SET name='刘亦帅' WHERE id=1;
+
+UPDATE studentInfoA SET  stuNum=10011, name='刘亦菲', sex='女', age=28, gradeFrom='西安交通大学' WHERE id=1
