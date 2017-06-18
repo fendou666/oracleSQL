@@ -30,10 +30,11 @@ studentId number(10),
 name varchar(5),
 sex varchar(2),
 age number(3),
-school varchar(20)
+school varchar(20),
+pwd varchar(20)
 );
 
-INSERT INTO studentInfo VALUES(100001, '小明', '男', 22, '西安交大');
+INSERT INTO studentInfo VALUES(100001, '小明', '男', 22, '西安交大','123');
 UPDATE studentInfo SET pwd='123' WHERE studentid=100001;
 
 select t.studentid, t.name, t.sex, t.age, t.school, t.pwd from STUDENTINFO t WHERE t.studentid=100001 AND t.pwd='123' 
