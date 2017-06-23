@@ -1,12 +1,41 @@
+-- 查询老师数据的函数
+create or replace function eecAdminQueryTeacherPageRows(v_maxPageRows       in number,
+                            v_currentPageNumber in number,
+                            v_condition         in varchar2,
+                            v_count             out number)
+    return sys_refcursor as
+    v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u, eecrole r where ' || v_condition;
+    v_getPageRecord varchar2(2000) := 'select sss.class_Id, sss.EEC_Id, sss.EEC_Name, sss.sex, sss.age, sss.email, sss.telephone, sss.role_name 
+          from  (  select 
+           case when mod(ss.Lineno,:maxPageRows) =0 then ss.Lineno/:maxPageRows
+            when mod(ss.Lineno,:maxPageRows)!=0 then trunc(ss.Lineno/:maxPageRows)+1 end as pageno,
+            ss.class_Id,ss.EEC_Id,  ss.EEC_Name, ss.sex, ss.age, ss.email, ss.telephone, ss.role_name
+          from  (select row_number() over(order by  u.EEC_Id)  as Lineno,
+             u.class_Id, u.EEC_Id, u.EEC_Name, u.sex,u.age, u.email, u.telephone, r.role_name  
+            from eecuser u, eecrole r where ' ||
+                      v_condition ||
+                      ' )  ss 
+        ) sss 
+        where sss.pageno=:currentPageNumbe';
+    myPagecur       sys_refcursor;
+begin
+    EXECUTE IMMEDIATE v_getCountSql
+        INTO v_count;
+    Dbms_Output.put_line('v_count:' || v_count);
+    open myPagecur for v_getPageRecord
+        using v_maxPageRows, v_maxPageRows, v_maxPageRows, v_maxPageRows, v_currentPageNumber;
+    return myPagecur;
+end;
+
+
 
 -- 查询老师数据的函数
 create or replace function eecAdminQueryTeacherPageRows(v_maxPageRows       in number,
 							v_currentPageNumber in number,
-							v_condition         in TESTVARCHAR.str%TYPE,
+							v_condition         in varchar2,
 							v_count             out number)
 	return sys_refcursor as
-	v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u, eecrole r where u.role_id=r.role_id ' ||
-					 v_condition;
+	v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u, eecrole r where u.role_id=r.role_id  AND isdelete=0 ' || v_condition;
 	v_getPageRecord varchar2(2000) := 'select sss.class_Id, sss.EEC_Id, sss.EEC_Name, sss.sex, sss.age, sss.email, sss.telephone, sss.role_name 
 	      from  (  select 
 		   case when mod(ss.Lineno,:maxPageRows) =0 then ss.Lineno/:maxPageRows
@@ -14,7 +43,7 @@ create or replace function eecAdminQueryTeacherPageRows(v_maxPageRows       in n
 			ss.class_Id,ss.EEC_Id,  ss.EEC_Name, ss.sex, ss.age, ss.email, ss.telephone, ss.role_name
 	      from  (select row_number() over(order by  u.EEC_Id)  as Lineno,
 			 u.class_Id, u.EEC_Id, u.EEC_Name, u.sex,u.age, u.email, u.telephone, r.role_name  
-		    from eecuser u, eecrole r where u.role_id=r.role_id ' ||
+		    from eecuser u, eecrole r where u.role_id=r.role_id   AND isdelete=0 ' ||
 					  v_condition ||
 					  ' )  ss 
 		) sss 
@@ -35,7 +64,7 @@ create or replace function eecUserInfoPageRows(v_maxPageRows       in number,
 						v_condition         in varchar2,
 						v_count             out number)
 	return sys_refcursor as
-	v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u where ' || v_condition;
+	v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u where  AND isdelete=0 ' || v_condition;
 	v_getPageRecord varchar2(2000) := 'select sss.class_Id, sss.EEC_Id, sss.EEC_Name, sss.sex, sss.age, sss.email, sss.telephone,
 	                                  sss.NickName,sss.Password,sss.birthday,sss.Constellatory,sss.Manager_id,
                                           sss.group_id,sss.registrationdate,sss.lastlogintime
@@ -49,7 +78,7 @@ create or replace function eecUserInfoPageRows(v_maxPageRows       in number,
 			 u.class_Id, u.EEC_Id, u.EEC_Name, u.sex,u.age, u.email, u.telephone, 
                          u.NickName,u.Password, u.birthday,u.Constellatory,u.Manager_id,
                          u.group_id,u.registrationdate,u.lastlogintime 
-		    from eecuser u where ' || v_condition ||
+		    from eecuser u where  AND isdelete=0 ' || v_condition ||
 					  ' )  ss 
 		) sss 
 	    where sss.pageno=:currentPageNumbe';
