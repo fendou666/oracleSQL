@@ -64,7 +64,7 @@ create or replace function eecUserInfoPageRows(v_maxPageRows       in number,
 						v_condition         in varchar2,
 						v_count             out number)
 	return sys_refcursor as
-	v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u where  AND isdelete=0 ' || v_condition;
+	v_getCountSql   varchar2(200) := 'select count(eec_id) from eecuser u where  isdelete=0 ' || v_condition;
 	v_getPageRecord varchar2(2000) := 'select sss.class_Id, sss.EEC_Id, sss.EEC_Name, sss.sex, sss.age, sss.email, sss.telephone,
 	                                  sss.NickName,sss.Password,sss.birthday,sss.Constellatory,sss.Manager_id,
                                           sss.group_id,sss.registrationdate,sss.lastlogintime
@@ -78,7 +78,7 @@ create or replace function eecUserInfoPageRows(v_maxPageRows       in number,
 			 u.class_Id, u.EEC_Id, u.EEC_Name, u.sex,u.age, u.email, u.telephone, 
                          u.NickName,u.Password, u.birthday,u.Constellatory,u.Manager_id,
                          u.group_id,u.registrationdate,u.lastlogintime 
-		    from eecuser u where  AND isdelete=0 ' || v_condition ||
+		    from eecuser u where isdelete=0 ' || v_condition ||
 					  ' )  ss 
 		) sss 
 	    where sss.pageno=:currentPageNumbe';
